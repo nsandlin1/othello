@@ -17,29 +17,300 @@ char* getTokenStatus(Token t) {
 
 // initialize board
 void initializeBoard(Token b[][8]) {
-	b[3][3] = white;
-	b[4][4] = white;
-	b[3][4] = black;
-	b[4][3] = black;
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			if ((i == 3 && j == 3) || (i == 4 && j == 4)) {
+				b[i][j] = white;
+			} else if ((i == 3 && j == 4) || (i == 4 && j == 3)) {
+				b[i][j] = black;
+			} else {
+				b[i][j] = none;
+			}
+		}
+	}
 }
 
 // print board state
 void printBoard(Token b[][8]) {
-	printf("\e[0;42mi   0   1   2   3   4   5   6   7  \e[0m\n");
-	printf("\e[0;42m  ---------------------------------\e[0m\n");
+	printf("\t\e[0;42m     0   1   2   3   4   5   6   7  j \e[0m\n");
+	printf("\t\e[0;42m   ---------------------------------  \e[0m\n");
 	for (int i = 0; i < 8; i++) {
-		printf("\e[0;42m%i ", i);
+		printf("\t\e[0;42m %i ", i);
 		for (int j = 0; j < 8; j++) {
 			printf("\e[0;42m| \e[1;42m%c ", getTokenStatus(b[i][j])[0]);
 		}
-		printf("\e[0;42m|\e[0m\n\e[0;42m  ---------------------------------\e[0m\n");
+		printf("\e[0;42m|  \e[0m\n\t\e[0;42m   ---------------------------------  \e[0m\n");
 	}
+	printf("\t\e[0;42m i                                    \e[0m\n");
 }
 
-// return if board location is empty
-// 1 if empty, 0 otherwise
-int isEmpty(int row, int col, Token b[][8]) {
-	return b[row][col] == none;
+
+int isPossiblePlay(Token b[][8], Token t) {
+	int has_seen_opp = 0;
+	for (int row = 0; row < 8; row++) {
+		for (int col = 0; col < 8; col++) {
+			has_seen_opp = 0;
+			if (b[row][col] != none) {
+				continue;
+			}
+			// check north
+			for (int i = row; i >= 0; i--) {
+				if (i == row) {
+					continue;
+				}
+				if (t == white) {
+					if (b[i][col] == white) {
+						if (i == row - 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[i][col] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				} else {
+					if (b[i][col] == black) {
+						if (i == row - 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[i][col] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				}
+			}
+			// check south
+			has_seen_opp = 0;
+			for (int i = row; i < 8; i++) {
+				if (i == row) {
+					continue;
+				}
+				if (t == white) {
+					if (b[i][col] == white) {
+						if (i == row + 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[i][col] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				} else {
+					if (b[i][col] == black) {
+						if (i == row + 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[i][col] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				}
+			}
+			// check east
+			has_seen_opp = 0;
+			for (int i = col; i < 8; i++) {
+				if (i == col) {
+					continue;
+				}
+				if (t == white) {
+					if (b[row][i] == white) {
+						if (i == col + 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[row][i] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				} else {
+					if (b[row][i] == black) {
+						if (i == col + 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[row][i] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				}
+			}
+			// check west
+			has_seen_opp = 0;
+			for (int i = col; i >= 0; i--) {
+				if (i == col) {
+					continue;
+				}
+				if (t == white) {
+					if (b[row][i] == white) {
+						if (i == col - 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[row][i] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				} else {
+					if (b[row][i] == black) {
+						if (i == col - 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[row][i] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				}
+			}
+			// check northeast
+			has_seen_opp = 0;
+			for (int r = row, c = col; r >= 0 && c < 8; c++, r--) {
+				if (c == col) {
+					continue;
+				}
+				if (t == white) {
+					if (b[r][c] == white) {
+						if (r == row - 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[r][c] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				} else {
+					if (b[r][c] == black) {
+						if (r == row - 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[r][c] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				}
+			}
+			// check northwest
+			has_seen_opp = 0;
+			for (int r = row, c = col; r >= 0 && c >= 0; c--, r--) {
+				if (c == col) {
+					continue;
+				}
+				if (t == white) {
+					if (b[r][c] == white) {
+						if (r == row - 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[r][c] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				} else {
+					if (b[r][c] == black) {
+						if (r == row - 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[r][c] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				}
+			}
+			// check southeast
+			has_seen_opp = 0;
+			for (int r = row, c = col; r < 8 && c < 8; c++, r++) {
+				if (c == col) {
+					continue;
+				}
+				if (t == white) {
+					if (b[r][c] == white) {
+						if (r == row + 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[r][c] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				} else {
+					if (b[r][c] == black) {
+						if (r == row + 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[r][c] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				}
+			}
+			// check southwest
+			has_seen_opp = 0;
+			for (int r = row, c = col; r < 8 && c >= 0; c--, r++) {
+				if (c == col) {
+					continue;
+				}
+				if (t == white) {
+					if (b[r][c] == white) {
+						if (r == row + 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[r][c] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				} else {
+					if (b[r][c] == black) {
+						if (r == row + 1) {
+							break;
+						} else if (has_seen_opp == 1) {
+							return 1;
+						}
+					} else if (b[r][c] == none) {
+						break;
+					} else {
+						has_seen_opp = 1;
+					}
+				}
+			}
+		}
+	}
+	return 0;
 }
 
 // place chip
@@ -48,6 +319,10 @@ int isEmpty(int row, int col, Token b[][8]) {
 // O(8n) >:•∫-<
 // this code is reducable via while loop methinks... but I twas in a copyin' mood
 void placeChip(int row, int col, Token t, Token b[][8]) {
+	// if has been played, do nothing
+	if (b[row][col] != none) {
+		return;
+	}
 	// check north
 	int is_play = 0;
 	int has_seen_opp = 0;
@@ -85,7 +360,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 	}
 	if (is_play) {
 		for (int i = row - 1; i >= 0; i--) {
-			printf("i: %i\n", i);
+			// printf("i: %i\n", i);
 			if (b[i][col] == t) {
 				break;
 			} else {
@@ -98,7 +373,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 	// check south
 	is_play = 0;
 	has_seen_opp = 0;
-	for (int i = row; i <= 8; i++) {
+	for (int i = row; i < 8; i++) {
 		if (i == row) {
 			continue;
 		}
@@ -131,8 +406,8 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 		}
 	}
 	if (is_play) {
-		for (int i = row + 1; i <= 8; i++) {
-			printf("i: %i\n", i);
+		for (int i = row + 1; i < 8; i++) {
+			// printf("i: %i\n", i);
 			if (b[i][col] == t) {
 				break;
 			} else {
@@ -145,7 +420,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 	// check east
 	is_play = 0;
 	has_seen_opp = 0;
-	for (int i = col; i <= 8; i++) {
+	for (int i = col; i < 8; i++) {
 		if (i == col) {
 			continue;
 		}
@@ -178,8 +453,8 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 		}
 	}
 	if (is_play) {
-		for (int i = col + 1; i <= 8; i++) {
-			printf("i: %i\n", i);
+		for (int i = col + 1; i < 8; i++) {
+			// printf("i: %i\n", i);
 			if (b[row][i] == t) {
 				break;
 			} else {
@@ -225,7 +500,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 		}
 	}
 	if (is_play) {
-		for (int i = col; i >= 0; i--) {
+		for (int i = col - 1; i >= 0; i--) {
 			if (b[row][i] == t) {
 				break;
 			} else {
@@ -238,7 +513,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 	// check northeast
 	is_play = 0;
 	has_seen_opp = 0;
-	for (int r = row, c = col; r >= 0, c <= 8; c++, r--) {
+	for (int r = row, c = col; r >= 0 && c < 8; c++, r--) {
 		if (c == col) {
 			continue;
 		}
@@ -271,7 +546,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 		}
 	}
 	if (is_play) {
-		for (int r = row, c = col; r >= 0, c <= 8; c++, r--) {
+		for (int r = row - 1, c = col + 1; r >= 0 && c < 8; c++, r--) {
 			if (b[r][c] == t) {
 				break;
 			} else {
@@ -284,7 +559,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 	// check northwest
 	is_play = 0;
 	has_seen_opp = 0;
-	for (int r = row, c = col; r >= 0, c >= 0; c--, r--) {
+	for (int r = row, c = col; r >= 0 && c >= 0; c--, r--) {
 		if (c == col) {
 			continue;
 		}
@@ -317,7 +592,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 		}
 	}
 	if (is_play) {
-		for (int r = row, c = col; r >= 0, c >= 0; c--, r--) {
+		for (int r = row - 1, c = col - 1; r >= 0 && c >= 0; c--, r--) {
 			if (b[r][c] == t) {
 				break;
 			} else {
@@ -330,7 +605,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 	// check southeast
 	is_play = 0;
 	has_seen_opp = 0;
-	for (int r = row, c = col; r <= 8, c <= 8; c++, r++) {
+	for (int r = row, c = col; r < 8 && c < 8; c++, r++) {
 		if (c == col) {
 			continue;
 		}
@@ -363,7 +638,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 		}
 	}
 	if (is_play) {
-		for (int r = row, c = col; r <= 8, c <= 8; c++, r++) {
+		for (int r = row + 1, c = col + 1; r < 8 && c < 8; c++, r++) {
 			if (b[r][c] == t) {
 				break;
 			} else {
@@ -376,7 +651,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 	// check southwest
 	is_play = 0;
 	has_seen_opp = 0;
-	for (int r = row, c = col; r <= 8, c >= 0; c--, r++) {
+	for (int r = row, c = col; r < 8 && c >= 0; c--, r++) {
 		if (c == col) {
 			continue;
 		}
@@ -409,7 +684,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 		}
 	}
 	if (is_play) {
-		for (int r = row, c = col; r <= 8, c >= 0; c--, r++) {
+		for (int r = row + 1, c = col - 1; r < 8 && c >= 0; c--, r++) {
 			if (b[r][c] == t) {
 				break;
 			} else {
@@ -422,66 +697,71 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 
 // return if game over (all spots played)
 // 1 if over, 0 otherwise
-int isGameOver(Token b[][8]) {
-	int w_count = 0;
-	int b_count = 0;
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
-			if (b[i][j] == white) {
-				w_count++;
-			} else if (b[i][j] == black) {
-				b_count++;
-			}
-		}
-	}
-	// if board full or one player has no tokens
-	if (w_count + b_count == 64 || w_count == 0 || b_count == 0) {
-		return 1;
-	} else {
-		return 0;
-	}
-}
+// int isGameOver(Token b[][8]) {
+// 	int w_count = 0;
+// 	int b_count = 0;
+// 	for (int i = 0; i < 8; i++) {
+// 		for (int j = 0; j < 8; j++) {
+// 			if (b[i][j] == white) {
+// 				w_count++;
+// 			} else if (b[i][j] == black) {
+// 				b_count++;
+// 			}
+// 		}
+// 	}
+// 	// if board full or one player has no tokens
+// 	if (w_count + b_count == 64 || w_count == 0 || b_count == 0) {
+// 		return 1;
+// 	} else {
+// 		return 0;
+// 	}
+// }
 
 // return the winner
 // white if white wins, black if black wins, none if tie
-Token getWinner(Token b[][8]) {
-	int w_count = 0;
-	int b_count = 0;
+// Token getWinner(Token b[][8]) {
+// 	int w_count = 0;
+// 	int b_count = 0;
+// 	for (int i = 0; i < 8; i++) {
+// 		for (int j = 0; j < 8; j++) {
+// 			if (b[i][j] == white) {
+// 				w_count++;
+// 			} else if (b[i][j] == black) {
+// 				b_count++;
+// 			}
+// 		}
+// 	}
+// 	if (w_count > b_count) {
+// 		return white;
+// 	} else if (w_count < b_count) {
+// 		return black;
+// 	} else {
+// 		return none;
+// 	}
+// }
+
+typedef struct {
+	int whites;
+	int blacks;
+	int nones;
+} BoardState;
+
+// return current board state (num of each token/blank spaces)
+// must pass num_rows due to array decay
+BoardState getBoardState(Token board[][8]) {
+	BoardState boardState = {0, 0, 0};
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
-			if (b[i][j] == white) {
-				w_count++;
-			} else if (b[i][j] == black) {
-				b_count++;
+			if (board[i][j] == white) {
+				boardState.whites++;
+			} else if (board[i][j] == black) {
+				boardState.blacks++;
+			} else {
+				boardState.nones++;
 			}
 		}
 	}
-	if (w_count > b_count) {
-		return white;
-	} else if (w_count < b_count) {
-		return black;
-	} else {
-		return none;
-	}
+	return boardState;
 }
 
-int main() {
-	printf("create board\n");
-	printBoard(board);	
-	printf("initialize board\n");
-	initializeBoard(board);
-	printBoard(board);
-	printf("place token on (4, 5)\n");
-	placeChip(2, 3, black, board);
-	printBoard(board);
-	placeChip(4, 2, white, board);
-	printBoard(board);
-	placeChip(5, 3, black, board);
-	printBoard(board);
-	placeChip(6, 2, black, board);
-	printBoard(board);
-	placeChip(6, 4, white, board);
-	printBoard(board);
 
-	return 0;
-}
