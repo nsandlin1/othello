@@ -62,6 +62,18 @@ void printBoard(Token b[][8], int true) {
 	printf("\t\e[0;42m i                                    \e[0m\n");
 }
 
+void printBoard2(Token b[][8]) {
+	printf("\t     0   1   2   3   4   5   6   7  j \n");
+	printf("\t   ---------------------------------  \n");
+	for (int i = 0; i < 8; i++) {
+		printf("\t %i ", i);
+		for (int j = 0; j < 8; j++) {
+			printf("| %c ", getTokenStatus(b[i][j])[0]);
+		}
+		printf("|  \n\t   ---------------------------------  \n");
+	}
+	printf("\t i                                    \n");
+}
 
 int isPossiblePlay(Token b[][8], Token t) {
 	int has_seen_opp = 0;
