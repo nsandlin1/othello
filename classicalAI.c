@@ -11,6 +11,9 @@
 #include "othello.c"
 #include <math.h>
 #include <float.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 // https://stackoverflow.com/questions/101439/the-most-efficient-way-to-implement-an-integer-based-power-function-powint-int
 int ipow(int base, int exp)
@@ -100,14 +103,17 @@ void printTileArr(s_Tile *arr, int len) {
 s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximizing_player, int do_prune, int *state_count, s_Tile curr_path[ply], int curr_path_len, int orig_ply, int debug) {
     s_Tile curr_best_tile;
 
-    // printf("%i\n", ply);
+    BoardState state = getBoardState(board);
+    if (state.nones < ply) {
+        ply = state.nones;
+    }
 
     if (ply == 0) {
         if (debug) {
             printTileArr(curr_path, curr_path_len);
+            printf("\n");
         }
         curr_best_tile.h = heuristic(board);
-        printf(" %lf\n", curr_best_tile.h);
         curr_best_tile.i = -1;
         curr_best_tile.j = -1;
         // printf("%i, %i, %lf\n", curr_best_tile.i,  curr_best_tile.j, curr_best_tile.h);
@@ -118,6 +124,7 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
         curr_best_tile.h = -DBL_MAX;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
+                // printf("max: %i, %i\n", i, j);
 
                 // this could easily be removed by changing place to
                 // not check if position is playable but to have separate
@@ -168,6 +175,7 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
         curr_best_tile.h = DBL_MAX;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
+                // printf("min: %i, %i\n", i, j);
                 // this could easily be removed by changing place to
                 // not check if position is playable but to have separate
                 // function
@@ -213,7 +221,24 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
     }
 }
 
+Token temmm[8][8] = {
+    {black, black, black, black, black, black, black, black},
+    {black, black, black, black, black, black, black, black},
+    {black, black, black, white, black, black, white, black},
+    {black, white, black, black, black, black, black, black},
+    {black, white, black, black, black, black, black, black},
+    {black, white, black, black, black, white, black, black},
+    {black, black, black, black, white, black, white, black},
+    {black, black, black, black, black, black, none, none},
+};
+
 int main() {
+
+    int trace = 0;
+    int f;
+    if (trace) {
+        f = open("gametrace.txt", O_RDWR|O_CREAT|O_APPEND, 0600);
+    }
 
     printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
     printf("\nWelcome to Othello!!!\n");
@@ -308,12 +333,18 @@ int main() {
     // initialize  board w/ starting state
     // initializeBoard(board);
     Token board[8][8];
-    initializeBoard(board);
+    initializeBoard(board); 
+    // for (int i = 0; i < 8; i++) {
+    //     for (int j = 0; j < 8; j++) {
+    //         board[i][j] = temmm[i][j];
+    //     }
+    // }
 
     printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
 
     int row, col;
-    int curr_player_turn = 1;
+    int curr_player_turn = 1; 
+    // int curr_player_turn = 2;
     while (1) {
         Token chip_color;
         if (curr_player_turn == 1) {
@@ -349,6 +380,14 @@ int main() {
             }
         }
         printBoard(board);
+        if (trace) {
+            int save_out = dup(fileno(stdout));
+            dup2(f, fileno(stdout));
+            printBoard2(board);
+            fflush(stdout);
+            dup2(save_out, fileno(stdout));
+            close(save_out);
+        }
         BoardState state = getBoardState(board);
         printf("Score:\n\twhite: %i\n\tblack: %i\n", state.whites, state.blacks);
         if (num_players == 1) {
@@ -438,6 +477,14 @@ int main() {
     }
 
     printBoard(board);
+    if (trace) {
+        int save_out = dup(fileno(stdout));
+        dup2(f, fileno(stdout));
+        printBoard2(board);
+        fflush(stdout);
+        dup2(save_out, fileno(stdout));
+        close(save_out);
+    }
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
     return 0;
