@@ -764,32 +764,4 @@ BoardState getBoardState(Token board[][8]) {
 	return boardState;
 }
 
-// int main() {
-// 	printf("create board\n");
-// 	printBoard(board);	
-// 	printf("initialize board\n");
-// 	initializeBoard(board);
-// 	printBoard(board);
-// 	printf("place token on (4, 5)\n");
-// 	placeChip(2, 3, black, board);
-// 	printBoard(board);
-// 	placeChip(4, 2, white, board);
-// 	printBoard(board);
-// 	placeChip(5, 3, black, board);
-// 	printBoard(board);
-// 	placeChip(6, 2, black, board);
-// 	printBoard(board);
-// 	placeChip(6, 4, white, board);
-// 	printBoard(board);
 
-// 	int num_rows = sizeof(board) / sizeof(board[0]);
-// 	printf("num_rows: %i\n", num_rows);
-
-// 	BoardState bs;
-// 	bs = getBoardState(board);
-// 	printf("%i\n", bs.blacks);
-// 	printf("%i\n", bs.whites);
-// 	printf("%i\n", bs.nones);
-
-// 	return 0;
-// }

@@ -37,15 +37,33 @@ typedef struct {
     double h;
 } s_Tile;
 
+// heuristic tile value map
+int tileValues[8][8] = {
+    {50, -20, 5, 5, -20, 50},
+    {-20, -50, -2, -2, -50, -20},
+    {5, -2, -1, -1, -2, 5},
+    {5, -2, -1, -1, -2, 5},
+    {-20, -50, -2, -2, -50, -20},
+    {50, -20, 5, 5, -20, 50}
+};
 // define the heuristic
 // AI plays as black
 // defined as number of black tokens minus number of white tokens
 // https://courses.cs.washington.edu/courses/cse573/04au/Project/mini1/RUSSIA/Final_Paper.pdf
 double heuristic(Token board[][8]) {
     BoardState boardState = getBoardState(board);
+    // printf("board: %i, %i", boardState.whites, boardState.blacks);
     int coin_parity = 100 * (boardState.blacks - boardState.whites) / (boardState.blacks + boardState.whites);
+    int tile_bias = 0;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (board[i][j] == black) {
+                tile_bias += tileValues[i][j];
+            }
+        }
+    }
     // will eventually implement more
-    return coin_parity;
+    return coin_parity + tile_bias;
 }
 
 Token** deepCopyTokenMatrix(Token board[][8], Token aux_board[][8]) {
@@ -57,16 +75,42 @@ Token** deepCopyTokenMatrix(Token board[][8], Token aux_board[][8]) {
     return aux_board;
 }
 
+s_Tile deepCopyTile(s_Tile orig) {
+    s_Tile new;
+    new.i = orig.i;
+    new.j = orig.j;
+    new.h = orig.h;
+    return new;
+}
 
-s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximizing_player, int player_color, int do_prune) {
+void deepCopyTileArr(s_Tile *origArr, s_Tile *newArr, int origArrDataLen) {
+    for (int i = 0; i < origArrDataLen; i++) {
+        newArr[i] = deepCopyTile(origArr[i]);
+    }
+}
+
+void printTileArr(s_Tile *arr, int len) {
+    printf("[ ");
+    for (int i = 0; i < len; i++) {
+        printf("(%i, %i) ", arr[i].i, arr[i].j);
+    }
+    printf("]");
+}
+
+s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximizing_player, int do_prune, int *state_count, s_Tile curr_path[ply], int curr_path_len, int orig_ply, int debug) {
     s_Tile curr_best_tile;
 
-    printf("%i\n", ply);
+    // printf("%i\n", ply);
 
     if (ply == 0) {
+        if (debug) {
+            printTileArr(curr_path, curr_path_len);
+        }
         curr_best_tile.h = heuristic(board);
+        printf(" %lf\n", curr_best_tile.h);
         curr_best_tile.i = -1;
         curr_best_tile.j = -1;
+        // printf("%i, %i, %lf\n", curr_best_tile.i,  curr_best_tile.j, curr_best_tile.h);
         return curr_best_tile;
     }
 
@@ -74,6 +118,7 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
         curr_best_tile.h = -DBL_MAX;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
+
                 // this could easily be removed by changing place to
                 // not check if position is playable but to have separate
                 // function
@@ -82,27 +127,26 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
                     deepCopyTokenMatrix(board, aux_board);
                     // printf("copied board\n");
 
-                    if (player_color == 1) {
-                        placeChip(i, j, black, aux_board);
-                    } else {
-                        placeChip(i, j, white, aux_board);
-                    }
+                    placeChip(i, j, black, aux_board);
                     // printf("placed chip\n");
 
                     // if it did not place meaning it was unplayable
                     if (aux_board[i][j] == none) {
                         continue;
                     }
+
+                    (*state_count)++;
+
+                    s_Tile new_path[orig_ply];
+                    deepCopyTileArr(curr_path, new_path, curr_path_len);
+                    new_path[curr_path_len] = (s_Tile) {.i = i, .j = j};
                     
-                    s_Tile temp_tile = minimax(aux_board, ply - 1, alpha, beta, 0, player_color, do_prune);
+                    s_Tile temp_tile = minimax(aux_board, ply - 1, alpha, beta, 0, do_prune, state_count, new_path, curr_path_len+1, orig_ply, debug);
 
                     if (temp_tile.h > curr_best_tile.h) {
                         curr_best_tile.h = temp_tile.h;
                         curr_best_tile.i = i;
                         curr_best_tile.j = j;
-                    }
-                    if (ply == 2) {
-                        printf("%i, %i, %lf\n", i, j, temp_tile.h);
                     }
                     if (do_prune) {
                         if (temp_tile.h > alpha) {
@@ -118,6 +162,7 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
                 break;
             }
         }
+        // printf("%i, %i, %lf, %i\n", curr_best_tile.i,  curr_best_tile.j, curr_best_tile.h, ply);
         return curr_best_tile;
     } else {
         curr_best_tile.h = DBL_MAX;
@@ -130,20 +175,21 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
                     Token aux_board[8][8];
                     deepCopyTokenMatrix(board, aux_board);
 
-                    if (player_color == 1) {
-                        placeChip(i, j, white, aux_board);
-                    } else {
-                        placeChip(i, j, black, aux_board);
-                    }
+                    placeChip(i, j, white, aux_board);
 
                     // if it did not place meaning it was unplayable
                     if (aux_board[i][j] == none) {
                         continue;
                     }
 
+                    (*state_count)++;
+
+                    s_Tile new_path[orig_ply];
+                    deepCopyTileArr(curr_path, new_path, curr_path_len);
+                    new_path[curr_path_len] = (s_Tile) {.i = i, .j = j};
                     
-                    s_Tile temp_tile = minimax(aux_board, ply - 1, alpha, beta, 1, player_color, do_prune);
-                    
+                    s_Tile temp_tile = minimax(aux_board, ply - 1, alpha, beta, 1, do_prune, state_count, new_path, curr_path_len+1, orig_ply, debug);
+
                     if (temp_tile.h < curr_best_tile.h) {
                         curr_best_tile.h = temp_tile.h;
                         curr_best_tile.i = i;
@@ -201,19 +247,49 @@ int main() {
         }
     }
 
-    // to prune or not to prune
-    printf("Would you like to use pruning? Yes (1) or No (2). ");
     int do_prune;
+    int ply;
+    if (num_players == 1) {
+        // to prune or not to prune
+        printf("Would you like to use pruning? Yes (1) or No (0): ");
+        while (1) {
+            fgets(buffer, 99, stdin);
+            num_items = sscanf(buffer, "%i", &do_prune);
+            if (num_items != 1 || (do_prune != 1 && do_prune != 0)) {
+                printf("\nInvalid input.\n");
+                continue;
+            } else {
+                break;
+            }
+        }
+
+        printf("Enter your AI ply number: ");
+        while (1) {
+            fgets(buffer, 99, stdin);
+            num_items = sscanf(buffer, "%i", &ply);
+            if (num_items != 1 || (ply < 1)) {
+                printf("\nInvalid input.\n");
+                continue;
+            } else {
+                break;
+            }
+        }
+    }
+
+    // debug or not
+    printf("Would you like to play in debug mode? Yes (1) or No (0): ");
+    int debug;
     while (1) {
         fgets(buffer, 99, stdin);
-        num_items = sscanf(buffer, "%i", &do_prune);
-        if (num_items != 1 || (do_prune != 1 && do_prune != 2)) {
+        num_items = sscanf(buffer, "%i", &debug);
+        if (num_items != 1 || (debug != 1 && debug != 0)) {
             printf("\nInvalid input.\n");
             continue;
         } else {
             break;
         }
     }
+
 
     if (num_players == 1) {
         if (player_color == 1) {
@@ -273,6 +349,8 @@ int main() {
             }
         }
         printBoard(board);
+        BoardState state = getBoardState(board);
+        printf("Score:\n\twhite: %i\n\tblack: %i\n", state.whites, state.blacks);
         if (num_players == 1) {
             if (curr_player_turn == 1) {
                 printf("\nEnter where you want to play your chip in the form <i, j>: ");
@@ -294,9 +372,16 @@ int main() {
                 // computer play
                 s_Tile bestPlay;
 
-                bestPlay = minimax(board, 3, -DBL_MAX, DBL_MAX, 1, player_color, do_prune);
+                int *state_count;
+                int the_count = 0;
+                state_count = &the_count;
 
-                printf("best play: %i, %i, %lf\n", bestPlay.i, bestPlay.j, bestPlay.h);
+                s_Tile curr_path[ply];
+                int curr_path_len = 0;
+                bestPlay = minimax(board, ply, -DBL_MAX, DBL_MAX, 1, do_prune, state_count, curr_path, curr_path_len, ply, debug);
+
+                printf("best play: (%i, %i), (%lf)\n", bestPlay.i, bestPlay.j, bestPlay.h);
+                printf("states visited: %i\n", *state_count);
                 if (player_color == 1) {
                     placeChip(bestPlay.i, bestPlay.j, black, board);
                 } else {
