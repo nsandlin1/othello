@@ -274,22 +274,21 @@ int main() {
                 break;
             }
         }
-    }
 
-    // debug or not
-    printf("Would you like to play in debug mode? Yes (1) or No (0): ");
-    int debug;
-    while (1) {
-        fgets(buffer, 99, stdin);
-        num_items = sscanf(buffer, "%i", &debug);
-        if (num_items != 1 || (debug != 1 && debug != 0)) {
-            printf("\nInvalid input.\n");
-            continue;
-        } else {
-            break;
+        // debug or not
+        printf("Would you like to play in debug mode? Yes (1) or No (0): ");
+        int debug;
+        while (1) {
+            fgets(buffer, 99, stdin);
+            num_items = sscanf(buffer, "%i", &debug);
+            if (num_items != 1 || (debug != 1 && debug != 0)) {
+                printf("\nInvalid input.\n");
+                continue;
+            } else {
+                break;
+            }
         }
     }
-
 
     if (num_players == 1) {
         if (player_color == 1) {
@@ -308,7 +307,12 @@ int main() {
     // initialize  board w/ starting state
     // initializeBoard(board);
     Token board[8][8];
-    initializeBoard(board);
+
+    if (player_color == 1) {
+            initializeBoard(board, 1);
+        } else {
+            initializeBoard(board, 0);
+        }
 
     printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
 
@@ -317,17 +321,9 @@ int main() {
     while (1) {
         Token chip_color;
         if (curr_player_turn == 1) {
-            if (player_color == 1) {
-                chip_color = white;
-            } else {
-                chip_color = black;
-            }
+            chip_color = white;
         } else {
-            if (player_color == 1) {
-                chip_color = black;
-            } else {
-                chip_color = white;
-            }
+            chip_color = black;
         }
         if (!isPossiblePlay(board, chip_color)) {
             BoardState boardState = getBoardState(board);
@@ -348,7 +344,12 @@ int main() {
                 }
             }
         }
-        printBoard(board);
+
+        if (player_color == 1) {
+            printBoard(board, 1);
+        } else {
+            printBoard(board, 0);
+        }
         BoardState state = getBoardState(board);
         printf("Score:\n\twhite: %i\n\tblack: %i\n", state.whites, state.blacks);
         if (num_players == 1) {
@@ -382,32 +383,43 @@ int main() {
 
                 printf("best play: (%i, %i), (%lf)\n", bestPlay.i, bestPlay.j, bestPlay.h);
                 printf("states visited: %i\n", *state_count);
-                if (player_color == 1) {
-                    placeChip(bestPlay.i, bestPlay.j, black, board);
-                } else {
-                    placeChip(bestPlay.i, bestPlay.j, white, board);
-                }
+
+                placeChip(bestPlay.i, bestPlay.j, black, board);
                 curr_player_turn = curr_player_turn - ipow(-1, curr_player_turn);
                 continue;
             }
         } else {
             printf("Player %i, enter where you would like to play in the form <i, j>: ", curr_player_turn);
+            fgets(buffer, 99, stdin);
+                num_items = sscanf(buffer, "%i, %i", &row, &col);
+                if (num_items != 2) {
+                    printf("Incorrect format.\n");
+                    continue;
+                }
+                if (debug == 1) {
+                    printf("i: %i | j; %i, num_itmes: %i\n", row, col, num_items);
+                }
+
+                if (board[row][col] != none) {
+                    printf("Invalid Play.\n");
+                    continue;
+                }
         }
         if (curr_player_turn == 1) {
             if (player_color == 1) {
                 printf("placing chip white\n");
-                placeChip(row, col, white, board);
             } else {
                 printf("placing chip black\n");
-                placeChip(row, col, black, board);
             }
+            placeChip(row, col, white, board);
         } else {
             if (player_color == 1) {
                 printf("placing chip black\n");
-                placeChip(row, col, black, board);
             } else {
                 printf("placing chip white\n");
-                placeChip(row, col, white, board);
+            }
+            if (num_players == 1) {
+                placeChip(row, col, black, board);
             }
         }
 
@@ -437,7 +449,11 @@ int main() {
         
     }
 
-    printBoard(board);
+    if (player_color == 1) {
+        printBoard(board, 1);
+    } else {
+        printBoard(board, 0);
+    }
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 
     return 0;
