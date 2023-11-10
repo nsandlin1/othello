@@ -7,22 +7,40 @@ typedef enum {none, white, black} Token;
 Token board[8][8];
 
 // get token name as string
-char* getTokenStatus(Token t) {
+char* getTokenStatus(Token t, int true) {
 	switch(t) {
 		case none: return "-";
-		case white: return "White";
-		case black: return "Black";
+		case white:
+			if (true) {
+				return "White";
+			} else {
+				return "Black";
+			}
+		case black: 
+			if (true) {
+				return "Black";
+			} else {
+				return "White";
+			}
 	}	
 }
 
 // initialize board
-void initializeBoard(Token b[][8]) {
+void initializeBoard(Token b[][8], int true) {
 	for (int i = 0; i < 8; i++) {
 		for (int j = 0; j < 8; j++) {
 			if ((i == 3 && j == 3) || (i == 4 && j == 4)) {
-				b[i][j] = white;
+				if (true) {
+					b[i][j] = white;
+				} else {
+					b[i][j] = black;
+				}
 			} else if ((i == 3 && j == 4) || (i == 4 && j == 3)) {
-				b[i][j] = black;
+				if (true) {
+					b[i][j] = black;
+				} else {
+					b[i][j] = white;
+				}
 			} else {
 				b[i][j] = none;
 			}
@@ -31,13 +49,13 @@ void initializeBoard(Token b[][8]) {
 }
 
 // print board state
-void printBoard(Token b[][8]) {
+void printBoard(Token b[][8], int true) {
 	printf("\t\e[0;42m     0   1   2   3   4   5   6   7  j \e[0m\n");
 	printf("\t\e[0;42m   ---------------------------------  \e[0m\n");
 	for (int i = 0; i < 8; i++) {
 		printf("\t\e[0;42m %i ", i);
 		for (int j = 0; j < 8; j++) {
-			printf("\e[0;42m| \e[1;42m%c ", getTokenStatus(b[i][j])[0]);
+			printf("\e[0;42m| \e[1;42m%c ", getTokenStatus(b[i][j], true)[0]);
 		}
 		printf("\e[0;42m|  \e[0m\n\t\e[0;42m   ---------------------------------  \e[0m\n");
 	}
