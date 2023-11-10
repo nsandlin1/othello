@@ -111,9 +111,9 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
     if (ply == 0) {
         if (debug) {
             printTileArr(curr_path, curr_path_len);
-            printf("\n");
         }
         curr_best_tile.h = heuristic(board);
+        printf(" %lf\n", curr_best_tile.h);
         curr_best_tile.i = -1;
         curr_best_tile.j = -1;
         // printf("%i, %i, %lf\n", curr_best_tile.i,  curr_best_tile.j, curr_best_tile.h);
