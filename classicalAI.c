@@ -332,7 +332,11 @@ int main() {
     // initialize  board w/ starting state
     // initializeBoard(board);
     Token board[8][8];
-    initializeBoard(board); 
+    if (player_color == 1) {
+        initializeBoard(board, 1);
+    } else {
+        initializeBoard(board, 0);
+    }
     // for (int i = 0; i < 8; i++) {
     //     for (int j = 0; j < 8; j++) {
     //         board[i][j] = temmm[i][j];
@@ -359,10 +363,18 @@ int main() {
                 continue;
             } else {
                 if (boardState.whites > boardState.blacks) {
-                    printf("White wins!\n\n");
+                    if (player_color == 1) {
+                        printf("White wins!\n\n");
+                    } else {
+                        printf("Black wins!\n\n");
+                    }
                     break;
                 } else if (boardState.whites < boardState.blacks) {
-                    printf("Black wins!\n\n");
+                    if (player_color == 1) {
+                        printf("Black wins!\n\n");
+                    } else {
+                        printf("White wins!\n\n");
+                    }
                     break;
                 } else {
                     printf("There has been a tie.\n\n");
@@ -380,14 +392,22 @@ int main() {
         if (trace) {
             int save_out = dup(fileno(stdout));
             dup2(f, fileno(stdout));
-            printBoard2(board);
+            if (player_color == 1) {
+                printBoard2(board, 1);
+            } else {
+                printBoard2(board, 0);
+            }
             fflush(stdout);
             dup2(save_out, fileno(stdout));
             close(save_out);
         }
       
         BoardState state = getBoardState(board);
-        printf("Score:\n\twhite: %i\n\tblack: %i\n", state.whites, state.blacks);
+        if (player_color == 1) {
+            printf("Score:\n\twhite: %i\n\tblack: %i\n", state.whites, state.blacks);
+        } else {
+            printf("Score:\n\twhite: %i\n\tblack: %i\n", state.blacks, state.whites);
+        }
         if (num_players == 1) {
             if (curr_player_turn == 1) {
                 printf("\nEnter where you want to play your chip in the form <i, j>: ");
@@ -454,9 +474,7 @@ int main() {
             } else {
                 printf("placing chip white\n");
             }
-            if (num_players == 1) {
-                placeChip(row, col, black, board);
-            }
+            placeChip(row, col, black, board);
         }
 
         // if chip was not placed
@@ -472,10 +490,18 @@ int main() {
             continue;
         } else {
             if (boardState.whites > boardState.blacks) {
-                printf("White wins!\n\n");
+                if (player_color == 1) {
+                    printf("White wins!\n\n");
+                } else {
+                    printf("Black wins!\n\n");
+                }
                 break;
             } else if (boardState.whites < boardState.blacks) {
-                printf("Black wins!\n\n");
+                if (player_color == 1) {
+                    printf("Black wins!\n\n");
+                } else {
+                    printf("White wins!\n\n");
+                }
                 break;
             } else {
                 printf("There has been a tie.\n\n");
@@ -492,7 +518,11 @@ int main() {
     if (trace) {
         int save_out = dup(fileno(stdout));
         dup2(f, fileno(stdout));
-        printBoard2(board);
+        if (player_color == 1) {
+            printBoard2(board, 1);
+        } else {
+            printBoard2(board, 0);
+        }
         fflush(stdout);
         dup2(save_out, fileno(stdout));
         close(save_out);
