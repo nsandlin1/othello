@@ -75,6 +75,7 @@ void printBoard2(Token b[][8], int true) {
 	printf("\t i                                    \n");
 }
 
+// check if token is a possible play
 int isPossiblePlay(Token b[][8], Token t) {
 	int has_seen_opp = 0;
 	for (int row = 0; row < 8; row++) {
@@ -770,6 +771,7 @@ void placeChip(int row, int col, Token t, Token b[][8]) {
 // 	}
 // }
 
+// struct for defining the possible states of a spot on the board
 typedef struct {
 	int whites;
 	int blacks;
