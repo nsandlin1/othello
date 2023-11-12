@@ -16,6 +16,7 @@
 #include <unistd.h>
 
 // https://stackoverflow.com/questions/101439/the-most-efficient-way-to-implement-an-integer-based-power-function-powint-int
+// function to return power of integer to another
 int ipow(int base, int exp)
 {
     int result = 1;
@@ -32,8 +33,7 @@ int ipow(int base, int exp)
     return result;
 }
 
-int debug = 1;
-
+// struct for defing a tile and its heuristic
 typedef struct {
     int i;
     int j;
@@ -69,6 +69,7 @@ double heuristic(Token board[][8]) {
     return coin_parity + tile_bias;
 }
 
+// function to deep copy token matrix
 Token** deepCopyTokenMatrix(Token board[][8], Token aux_board[][8]) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -78,6 +79,7 @@ Token** deepCopyTokenMatrix(Token board[][8], Token aux_board[][8]) {
     return aux_board;
 }
 
+// function to deep copy a tile
 s_Tile deepCopyTile(s_Tile orig) {
     s_Tile new;
     new.i = orig.i;
@@ -86,12 +88,14 @@ s_Tile deepCopyTile(s_Tile orig) {
     return new;
 }
 
+// function to deep copy a tile array
 void deepCopyTileArr(s_Tile *origArr, s_Tile *newArr, int origArrDataLen) {
     for (int i = 0; i < origArrDataLen; i++) {
         newArr[i] = deepCopyTile(origArr[i]);
     }
 }
 
+// function to print a tile array
 void printTileArr(s_Tile *arr, int len) {
     printf("[ ");
     for (int i = 0; i < len; i++) {
@@ -100,26 +104,33 @@ void printTileArr(s_Tile *arr, int len) {
     printf("]");
 }
 
+// function to perform minimax algorithm
 s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximizing_player, int do_prune, int *state_count, s_Tile curr_path[ply], int curr_path_len, int orig_ply, int debug) {
+    // define current bets tile
     s_Tile curr_best_tile;
 
+    // get board state
     BoardState state = getBoardState(board);
+
+    // if there are less openings then ply, set ply to number of openings to avoid infinite loop
     if (state.nones < ply) {
         ply = state.nones;
     }
 
+    // base case
     if (ply == 0) {
         if (debug) {
             printTileArr(curr_path, curr_path_len);
+            printf(" %lf\n", curr_best_tile.h);
         }
         curr_best_tile.h = heuristic(board);
-        printf(" %lf\n", curr_best_tile.h);
         curr_best_tile.i = -1;
         curr_best_tile.j = -1;
         // printf("%i, %i, %lf\n", curr_best_tile.i,  curr_best_tile.j, curr_best_tile.h);
         return curr_best_tile;
     }
 
+    // if ai
     if (maximizing_player) {
         curr_best_tile.h = -DBL_MAX;
         for (int i = 0; i < 8; i++) {
@@ -171,7 +182,9 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
         }
         // printf("%i, %i, %lf, %i\n", curr_best_tile.i,  curr_best_tile.j, curr_best_tile.h, ply);
         return curr_best_tile;
-    } else {
+    } 
+    // if not ai
+    else {
         curr_best_tile.h = DBL_MAX;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -221,6 +234,7 @@ s_Tile minimax(Token board[][8], int ply, double alpha, double beta, int maximiz
     }
 }
 
+// test
 Token temmm[8][8] = {
     {black, black, black, black, black, black, black, black},
     {black, black, black, black, black, black, black, black},
@@ -232,8 +246,10 @@ Token temmm[8][8] = {
     {black, black, black, black, black, black, none, none},
 };
 
+// main part of program
 int main() {
 
+    // instantiating control variables
     int trace = 0;
     int f;
     if (trace) {
@@ -244,6 +260,7 @@ int main() {
     printf("\nWelcome to Othello!!!\n");
     printf("Would you like to play 1 player or 2 player? ");
 
+    // get number of players
     char buffer[100];
     int num_players;
     int num_items;
@@ -258,6 +275,7 @@ int main() {
         }
     }
 
+    // get player color preference
     // player color equals 1 means active player is white
     printf("Would you like to play white (1) or black (2)? ");
     int player_color;
@@ -272,8 +290,10 @@ int main() {
         }
     }
 
+    // if ai is playing
     int do_prune;
     int ply;
+    int debug;
     if (num_players == 1) {
         // to prune or not to prune
         printf("Would you like to use pruning? Yes (1) or No (0): ");
@@ -288,6 +308,7 @@ int main() {
             }
         }
 
+        // get ai ply number
         printf("Enter your AI ply number: ");
         while (1) {
             fgets(buffer, 99, stdin);
@@ -302,7 +323,6 @@ int main() {
 
         // debug or not
         printf("Would you like to play in debug mode? Yes (1) or No (0): ");
-        int debug;
         while (1) {
             fgets(buffer, 99, stdin);
             num_items = sscanf(buffer, "%i", &debug);
@@ -348,6 +368,8 @@ int main() {
     int row, col;
     int curr_player_turn = 1; 
     // int curr_player_turn = 2;
+
+    // game loop
     while (1) {
         Token chip_color;
         if (curr_player_turn == 1) {
@@ -355,13 +377,17 @@ int main() {
         } else {
             chip_color = black;
         }
+        // if player can play
         if (!isPossiblePlay(board, chip_color)) {
+            // get board state
             BoardState boardState = getBoardState(board);
             if (boardState.nones != 0) {
+                // if not, next player's turn
                 curr_player_turn = curr_player_turn - ipow(-1, curr_player_turn);
                 printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
                 continue;
             } else {
+                // board full, get winner
                 if (boardState.whites > boardState.blacks) {
                     if (player_color == 1) {
                         printf("White wins!\n\n");
@@ -383,12 +409,14 @@ int main() {
             }
         }
 
+        // print board
         if (player_color == 1) {
             printBoard(board, 1);
         } else {
             printBoard(board, 0);
         }
 
+        // for file recording
         if (trace) {
             int save_out = dup(fileno(stdout));
             dup2(f, fileno(stdout));
@@ -401,29 +429,55 @@ int main() {
             dup2(save_out, fileno(stdout));
             close(save_out);
         }
-      
+
+        // show scores
         BoardState state = getBoardState(board);
         if (player_color == 1) {
             printf("Score:\n\twhite: %i\n\tblack: %i\n", state.whites, state.blacks);
         } else {
             printf("Score:\n\twhite: %i\n\tblack: %i\n", state.blacks, state.whites);
         }
+
+        // get user input
         if (num_players == 1) {
             if (curr_player_turn == 1) {
-                printf("\nEnter where you want to play your chip in the form <i, j>: ");
-                fgets(buffer, 99, stdin);
-                num_items = sscanf(buffer, "%i, %i", &row, &col);
-                if (num_items != 2) {
-                    printf("Incorrect format.\n");
-                    continue;
-                }
-                if (debug == 1) {
-                    printf("i: %i | j; %i, num_itmes: %i\n", row, col, num_items);
-                }
+                while(1) {
+                    printf("\nEnter where you want to play your chip in the form <i, j>: ");
+                    fgets(buffer, 99, stdin);
+                    num_items = sscanf(buffer, "%i, %i", &row, &col);
+                    if (num_items != 2) {
+                        printf("Incorrect format.\n");
+                        continue;
+                    }
+                    if (row == -1 && col == -1) {
+                        if (do_prune == 0) {
+                            do_prune = 1;
+                            printf("pruning enabled\n");
+                        } else {
+                            do_prune = 0;
+                            printf("pruning disabled\n");
+                        }
+                        continue;
+                    }
+                    if (row == -2 && col == -2) {
+                        if (debug == 0) {
+                            debug = 1;
+                            printf("debug enabled\n");
+                        } else {
+                            debug = 0;
+                            printf("debug disabled\n");
+                        }
+                        continue;
+                    }
+                    if (debug == 1) {
+                        printf("i: %i | j; %i, num_itmes: %i\n", row, col, num_items);
+                    }
 
-                if (board[row][col] != none) {
-                    printf("Invalid Play.\n");
-                    continue;
+                    if (board[row][col] != none) {
+                        printf("Invalid Play.\n");
+                        continue;
+                    }
+                    break;
                 }
             } else {
                 // computer play
@@ -437,8 +491,10 @@ int main() {
                 int curr_path_len = 0;
                 bestPlay = minimax(board, ply, -DBL_MAX, DBL_MAX, 1, do_prune, state_count, curr_path, curr_path_len, ply, debug);
 
-                printf("best play: (%i, %i), (%lf)\n", bestPlay.i, bestPlay.j, bestPlay.h);
-                printf("states visited: %i\n", *state_count);
+                if (debug) {
+                    printf("best play: (%i, %i), (%lf)\n", bestPlay.i, bestPlay.j, bestPlay.h);
+                    printf("states visited: %i\n", *state_count);
+                }
 
                 placeChip(bestPlay.i, bestPlay.j, black, board);
                 curr_player_turn = curr_player_turn - ipow(-1, curr_player_turn);
@@ -461,6 +517,7 @@ int main() {
                     continue;
                 }
         }
+        // place the chip
         if (curr_player_turn == 1) {
             if (player_color == 1) {
                 printf("placing chip white\n");
@@ -483,6 +540,7 @@ int main() {
             continue;
         }
 
+        // show winner if applicable
         BoardState boardState = getBoardState(board);
         if (boardState.nones != 0) {
             curr_player_turn = curr_player_turn - ipow(-1, curr_player_turn);
@@ -495,6 +553,11 @@ int main() {
                 } else {
                     printf("Black wins!\n\n");
                 }
+                if (player_color == 1) {
+                    printf("Score:\n\twhite: %i\n\tblack: %i\n", state.whites, state.blacks);
+                } else {
+                    printf("Score:\n\twhite: %i\n\tblack: %i\n", state.blacks, state.whites);
+                }
                 break;
             } else if (boardState.whites < boardState.blacks) {
                 if (player_color == 1) {
@@ -502,19 +565,31 @@ int main() {
                 } else {
                     printf("White wins!\n\n");
                 }
+                if (player_color == 1) {
+                    printf("Score:\n\twhite: %i\n\tblack: %i\n", state.whites, state.blacks);
+                } else {
+                    printf("Score:\n\twhite: %i\n\tblack: %i\n", state.blacks, state.whites);
+                }
                 break;
             } else {
                 printf("There has been a tie.\n\n");
+                if (player_color == 1) {
+                    printf("Score:\n\twhite: %i\n\tblack: %i\n", state.whites, state.blacks);
+                } else {
+                    printf("Score:\n\twhite: %i\n\tblack: %i\n", state.blacks, state.whites);
+                }
                 break;
             }
         }
         
     }
+    // print board
     if (player_color == 1) {
         printBoard(board, 1);
     } else {
         printBoard(board, 0);
     }
+    // for saving to file
     if (trace) {
         int save_out = dup(fileno(stdout));
         dup2(f, fileno(stdout));
